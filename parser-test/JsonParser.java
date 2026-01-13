@@ -1,5 +1,7 @@
 import java.util.*;
 
+import javax.management.RuntimeErrorException;
+
 public class JsonParser {
     private List<Token> tokens;
     private int position;
@@ -49,12 +51,60 @@ public class JsonParser {
             position++;
             return JsonValue.object(object);
         }
+
+        while(true){
+            Token keyToken = tokens.get(position);
+            if(keyToken.type != TokenType.STRING){
+                throw new RuntimeException("Expected string key");
+            }
+            String key = keyToken.value;
+            position++;
+
+            if(tokens.get(position).type != TokenType.COLON){
+                throw new RuntimeException("Expected :");
+            }
+            position++;
+
+            JsonValue value = parseValue();
+            object.put(key, value);
+
+            Token next = tokens.get(position);
+            if(next.type == TokenType.OBJECT_END){
+                position++;
+                break;
+            } else if (next.type == TokenType.COMMA){
+                position++;
+            } else {
+                throw new RuntimeException("Expected , or }");
+            }
+        }
+        return JsonValue.object(object);
     }
     
     private JsonValue parseArray() {
-        // TODO: Implement array parsing  
-        // Handle [ value, value, value ]
-        return null;
+        List<JsonValue> array = new ArrayList<>();
+        position++;
+
+        if(tokens.get(position).type == TokenType.ARRAY_END){
+            position++;
+            return JsonValue.array(array);
+        }
+
+        while(true){
+            JsonValue value = parseValue();
+            array.add(value);
+
+            Token next = tokens.get(position);
+            if (next.type == TokenType.ARRAY_END){
+                position++;
+                break;
+            } else if (next.type == TokenType.COMMA){
+                position++;
+            } else {
+                throw new RuntimeException("Expected , or ]");
+            }
+        }
+        return JsonValue.array(array);
     }
     
     private void expect(TokenType expected) {
