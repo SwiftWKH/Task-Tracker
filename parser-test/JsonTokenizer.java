@@ -73,23 +73,41 @@ public class JsonTokenizer {
     }
     
     private Token parseNumber() {
-        position++;
         StringBuilder sb = new StringBuilder();
 
         if(json.charAt(position) == '-'){
             sb.append('-');
             position++;
         }
-        return null;
+
+        while(position < json.length()){
+            char c = json.charAt(position);
+            if(Character.isDigit(c) || c =='.'){
+                sb.append(c);
+                position++;
+            } else {
+                break;
+            }
+        }
+        return new Token(TokenType.NUMBER, sb.toString());
     }
     
     private Token parseBoolean() {
-        // TODO: Implement boolean parsing (true/false)
-        return null;
+        if (json.substring(position).startsWith("true")){
+            position += 4;
+            return new Token(TokenType.BOOLEAN, "true");
+        } else if (json.substring(position).startsWith("false")){
+            position += 5;
+            return new Token(TokenType.BOOLEAN, "false");
+        }
+        throw new RuntimeException("Invalid boolean at position "+position);
     }
     
     private Token parseNull() {
-        // TODO: Implement null parsing
-        return null;
+        if (json.substring(position).startsWith("null")){
+            position += 4;
+            return new Token(TokenType.NULL, "null");
+        }
+        throw new RuntimeException("Invalid null at position "+position);
     }
 }
