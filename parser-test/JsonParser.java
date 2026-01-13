@@ -17,15 +17,38 @@ public class JsonParser {
     }
     
     private JsonValue parseValue() {
-        // TODO: Implement value parsing
-        // This should handle all token types and call appropriate methods
-        return null;
+        Token token = tokens.get(position);
+
+        switch(token.type){
+            case OBJECT_START: 
+                return parseObject();
+            case ARRAY_START: 
+                return parseArray();
+            case STRING:
+                position++;
+                return JsonValue.string(token.value);
+            case NUMBER:
+                position++;
+                return JsonValue.number(token.value);
+            case BOOLEAN:
+                position++;
+                return JsonValue.bool(Boolean.parseBoolean(token.value));
+            case NULL:
+                position++;
+                return JsonValue.nullValue();
+            default:
+                throw new RuntimeException("Unexpected token: "+token.type);
+        }
     }
     
     private JsonValue parseObject() {
-        // TODO: Implement object parsing
-        // Handle { key: value, key: value }
-        return null;
+        Map<String, JsonValue> object = new HashMap<>();
+        position++;
+
+        if(tokens.get(position).type == TokenType.OBJECT_END){
+            position++;
+            return JsonValue.object(object);
+        }
     }
     
     private JsonValue parseArray() {
